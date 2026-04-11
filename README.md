@@ -3,6 +3,7 @@
 A flashcard app for toddlers. Shows emoji cards across 16 categories with text-to-speech, auto-play, and fun celebrations between categories.
 
 **Live:** https://sharpstar.surge.sh
+**Google Cloud (recommended):** https://jf-tasks.web.app
 
 ## Getting Started
 
