@@ -2,13 +2,13 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CATEGORIES from "./data";
 
-/* ─── Twemoji: convert emoji char to crisp SVG URL ─── */
+/* ─── Twemoji: convert emoji char to local SVG path ─── */
 function emojiToTwemoji(emoji) {
   const codepoints = [...emoji]
     .map((c) => c.codePointAt(0).toString(16))
     .filter((cp) => cp !== "fe0f")
     .join("-");
-  return `https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/${codepoints}.svg`;
+  return `/emoji/${codepoints}.svg`;
 }
 
 /* ─── Text-to-Speech helper ─── */
