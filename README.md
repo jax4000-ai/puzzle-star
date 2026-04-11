@@ -2,7 +2,7 @@
 
 A flashcard app for toddlers. Shows emoji cards across 16 categories with text-to-speech, auto-play, and fun celebrations between categories.
 
-**Live:** https://smart-david.surge.sh
+**Live:** https://sharpstar.surge.sh
 
 ## Getting Started
 
@@ -31,7 +31,7 @@ npm run preview
 
 ```bash
 # Deploy to Surge
-npx surge dist smart-david.surge.sh
+npx surge dist sharpstar.surge.sh
 
 # Deploy to Firebase
 npx firebase deploy
@@ -39,7 +39,7 @@ npx firebase deploy
 
 ## How It Works
 
-The app auto-plays through 16 emoji categories (20 cards each). Each card flips to reveal the emoji, speaks the name aloud, and moves to the next. Every 5 cards there's a cheer, and between categories there's a celebration with kids shouting "Hip hip hurray!". A final done screen appears at the end.
+The app auto-plays through 16 emoji categories (20 cards each). Each card flips to reveal the emoji, speaks the name aloud, and moves to the next. Every 5 cards there's an encouraging cheer, and between categories there's an excited celebration with a cheer message. A final done screen appears at the end.
 
 ## Project Structure
 
@@ -52,6 +52,8 @@ sharp-star/
 ├── firebase.json       # Firebase Hosting configuration
 ├── .firebaserc         # Firebase project alias
 ├── .gitignore          # Files excluded from git (node_modules, dist)
+├── public/
+│   └── emoji/          # 199 self-hosted Twemoji SVGs (no CDN dependency)
 └── src/
     ├── main.jsx        # App entry point — mounts React to the DOM
     ├── App.jsx         # All components and logic (see below)
@@ -67,15 +69,15 @@ The main application file containing all components and helpers:
 
 - **`speak(text)`** — Text-to-speech for card names (Web Speech API)
 - **`speakCheer(text)`** — Excited cheer voice for every-5-cards encouragement
-- **`playCelebration(cheerText)`** — Kids shouting "Hip hip hurray!" followed by a cheer message (used between categories and on the done screen)
-- **`emojiToTwemoji(emoji)`** — Converts emoji characters to crisp Twemoji SVG URLs from CDN
+- **`playCelebration(cheerText)`** — Excited celebration shout followed by a cheer message (used between categories and on the done screen)
+- **`emojiToTwemoji(emoji)`** — Converts emoji characters to local Twemoji SVG paths (`/emoji/*.svg`)
 - **`unlockAudio()`** — Unlocks audio on iOS Safari (requires user tap)
 - **`randomCheer()`** — Picks a random encouragement phrase ("Yay!", "Super!", "Awesome!", etc.)
 - **`ShapeDisplay`** — Renders SVG shapes (circle, square, triangle, star, heart, diamond)
 - **`CardBack`** — Renders the back of a card: Twemoji SVG, color swatch, shape, or big letter
 - **`Flashcard`** — Flip card with Framer Motion rotateY animation
 - **`FlashcardDeck`** — Auto-plays through cards in a category with speech and cheers
-- **`CelebrationScreen`** — Animated screen between categories with hurray shout
+- **`CelebrationScreen`** — Animated screen between categories with celebration cheer
 - **`DoneScreen`** — Final celebration screen with bouncing confetti and restart button
 - **`CategoryGrid`** — Grid of category buttons (used in manual mode)
 - **`App`** — Root component managing start → play → celebrate → done flow
@@ -107,4 +109,4 @@ PostCSS pipeline with Tailwind CSS and Autoprefixer plugins.
 - **Tailwind CSS 4** — Utility-first styling
 - **Framer Motion** — Card flip animations
 - **Web Speech API** — Text-to-speech for card names and cheers
-- **Twemoji SVG** — Crisp emoji rendering at large sizes via CDN
+- **Twemoji SVG** — 199 self-hosted SVGs in `public/emoji/` — zero external dependencies at runtime

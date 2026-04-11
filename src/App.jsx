@@ -27,8 +27,8 @@ function speak(text) {
 function playCelebration(cheerText) {
   if ("speechSynthesis" in window) {
     window.speechSynthesis.cancel();
-    // First: kids shouting hurray (high pitch = child voice)
-    const shout = new SpeechSynthesisUtterance("Hip hip hurray! Hip hip hurray! Hip hip hurray!");
+    // First: excited kid shout
+    const shout = new SpeechSynthesisUtterance("Yaaay!");
     shout.rate = 0.9;
     shout.pitch = 2.0;
     shout.volume = 1.0;
