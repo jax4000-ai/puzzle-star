@@ -50,6 +50,13 @@ const SZ = 150;    // puzzle row piece size
 const OL = 22;     // overlap
 const TILE = 155;  // draggable tile size (larger = easier to grab)
 
+const CHEERS = [
+  "Amazing work!", "You're so smart!", "Fantastic!", "Brilliant!",
+  "You're a star!", "Wonderful!", "Keep it up!", "You rock!",
+  "Super job!", "Awesome!", "Well done!", "You did it!",
+  "That's incredible!", "I'm so proud of you!", "You're doing great!",
+];
+
 function speak(text) {
   if ("speechSynthesis" in window) {
     window.speechSynthesis.cancel();
@@ -57,6 +64,18 @@ function speak(text) {
     u.rate = 0.8; u.pitch = 1.3; u.lang = "en-US";
     window.speechSynthesis.speak(u);
   }
+}
+
+// Queue a cheer after the main phrase finishes speaking
+function speakThen(main, cheer) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const u1 = new SpeechSynthesisUtterance(main);
+  u1.rate = 0.8; u1.pitch = 1.3; u1.lang = "en-US";
+  const u2 = new SpeechSynthesisUtterance(cheer);
+  u2.rate = 0.85; u2.pitch = 1.6; u2.lang = "en-US";
+  window.speechSynthesis.speak(u1);
+  window.speechSynthesis.speak(u2);
 }
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
@@ -256,7 +275,8 @@ export default function LetterPuzzle() {
   // Correct word drop → place piece immediately, go to done
   const handleWordDrop = useCallback((word) => {
     if (word === current.word) {
-      speak(current.letter + " is for " + current.word + "!");
+      const cheer = CHEERS[Math.floor(Math.random() * CHEERS.length)];
+      speakThen(current.letter + " is for " + current.word + "!", cheer);
       setStep("done");
     } else {
       flashWrong();
