@@ -2,6 +2,10 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CATEGORIES from "./data";
 
+/* ─── Monetisation ─── */
+const FREE_CATEGORIES = 2;          // first 2 categories (Alphabets, Small Words) are always free
+const STORAGE_KEY = "sharpstar_unlocked";
+
 /* ─── Twemoji: convert emoji char to local SVG path ─── */
 function emojiToTwemoji(emoji) {
   const codepoints = [...emoji]
@@ -407,12 +411,69 @@ function CategoryGrid({ onSelect }) {
   );
 }
 
+/* ─── Unlock / Paywall Screen ─── */
+function UnlockScreen({ onBuy, onRestore, onLater }) {
+  const lockedCount = CATEGORIES.length - FREE_CATEGORIES;
+  const lockedLabels = CATEGORIES.slice(FREE_CATEGORIES)
+    .map((c) => c.label)
+    .join(", ");
+
+  useEffect(() => {
+    speak("Unlock all categories for just 99 cents!");
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center max-w-sm mx-auto"
+      >
+        <motion.span
+          className="text-7xl block mb-4"
+          animate={{ rotate: [0, -10, 10, -10, 10, 0] }}
+          transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
+        >
+          🔓
+        </motion.span>
+        <h1 className="text-3xl font-extrabold text-slate-800 mb-2">
+          Unlock All Categories!
+        </h1>
+        <p className="text-slate-500 mb-3">
+          You've finished the free categories. Unlock{" "}
+          <span className="font-bold text-indigo-600">{lockedCount} more</span> including{" "}
+          {lockedLabels}!
+        </p>
+        <button
+          onClick={onBuy}
+          className="w-full px-6 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xl font-bold shadow-lg active:scale-95 transition-transform mb-3"
+        >
+          🌟 Unlock All — $0.99
+        </button>
+        <button
+          onClick={onRestore}
+          className="w-full px-6 py-2 rounded-full border border-slate-300 text-slate-600 text-sm font-medium mb-4 active:scale-95 transition-transform"
+        >
+          Restore Purchase
+        </button>
+        <button onClick={onLater} className="text-slate-400 text-sm underline">
+          Maybe later
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 /* ─── App Root — auto-flows through all categories ─── */
 export default function App() {
   const [started, setStarted] = useState(false);
   const [catIndex, setCatIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [unlocked, setUnlocked] = useState(
+    () => localStorage.getItem(STORAGE_KEY) === "true"
+  );
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleStart = useCallback(() => {
     unlockAudio();
@@ -425,17 +486,48 @@ export default function App() {
 
   const handleCelebrationDone = useCallback(() => {
     setCelebrating(false);
-    if (catIndex < CATEGORIES.length - 1) {
-      setCatIndex((i) => i + 1);
-    } else {
+    const nextIndex = catIndex + 1;
+    if (nextIndex >= CATEGORIES.length) {
       setDone(true);
+    } else if (nextIndex >= FREE_CATEGORIES && !unlocked) {
+      setShowPaywall(true);
+    } else {
+      setCatIndex(nextIndex);
     }
-  }, [catIndex]);
+  }, [catIndex, unlocked]);
+
+  const handlePurchase = useCallback(() => {
+    // ─────────────────────────────────────────────────────────────────────
+    // TODO: Replace the two lines below with the real store IAP call:
+    //   • Android  → Google Play Billing via Capacitor/In-App-Purchases plugin
+    //   • iOS      → Apple StoreKit via Capacitor/In-App-Purchases plugin
+    //   • Web-only → Stripe Checkout redirect
+    // Only call the lines below AFTER the store confirms payment success.
+    // ─────────────────────────────────────────────────────────────────────
+    localStorage.setItem(STORAGE_KEY, "true");
+    setUnlocked(true);
+    setShowPaywall(false);
+    setCatIndex(FREE_CATEGORIES); // continue from first locked category
+  }, []);
+
+  const handleRestore = useCallback(() => {
+    // TODO: Replace with store restore-purchases API call.
+    // Check localStorage as a fallback for web / dev mode.
+    const already = localStorage.getItem(STORAGE_KEY) === "true";
+    if (already) {
+      setUnlocked(true);
+      setShowPaywall(false);
+      setCatIndex(FREE_CATEGORIES);
+    } else {
+      speak("No purchase found.");
+    }
+  }, []);
 
   const handleRestart = useCallback(() => {
     setCatIndex(0);
     setDone(false);
     setCelebrating(false);
+    setShowPaywall(false);
   }, []);
 
   if (!started) {
@@ -448,15 +540,48 @@ export default function App() {
         >
           <span className="text-8xl block mb-4">🌟</span>
           <h1 className="text-4xl font-extrabold text-slate-800 mb-2">Sharp Star™</h1>
-          <p className="text-slate-500 mb-8">Tap to start learning!</p>
+          {unlocked ? (
+            <p className="text-slate-500 mb-8">All categories unlocked! 🎉</p>
+          ) : (
+            <p className="text-slate-500 mb-2">
+              {FREE_CATEGORIES} free categories · Unlock all for{" "}
+              <span className="font-bold text-indigo-600">$0.99</span>
+            </p>
+          )}
           <button
             onClick={handleStart}
-            className="px-8 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xl font-bold shadow-lg active:scale-95 transition-transform"
+            className={`px-8 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xl font-bold shadow-lg active:scale-95 transition-transform ${unlocked ? "" : "mb-4"}`}
           >
             ▶ Start
           </button>
+          {!unlocked && (
+            <div className="flex flex-col gap-2 mt-4">
+              <button
+                onClick={() => { unlockAudio(); handlePurchase(); }}
+                className="px-8 py-3 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-base font-bold shadow active:scale-95 transition-transform"
+              >
+                🌟 Unlock All — $0.99
+              </button>
+              <button
+                onClick={handleRestore}
+                className="text-slate-400 text-sm underline"
+              >
+                Restore Purchase
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
+    );
+  }
+
+  if (showPaywall) {
+    return (
+      <UnlockScreen
+        onBuy={handlePurchase}
+        onRestore={handleRestore}
+        onLater={handleRestart}
+      />
     );
   }
 
